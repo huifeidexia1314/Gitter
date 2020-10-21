@@ -48,7 +48,7 @@ async function fetchAllLanguages() {
       const $a = $(a);
       return {
         urlParam: getLang($a.attr('href')),
-        name: $a.children('.select-menu-item-text').text(),
+        name: $a.children('[data-menu-button-text]').text(),
       };
     });
   return {
@@ -65,17 +65,18 @@ async function fetchRepositories({
   const data = await fetch(url);
   const $ = cheerio.load(await data.text());
   return (
-    $('.repo-list li')
+    $('.Box article.Box-row')
       .get()
       // eslint-disable-next-line complexity
       .map(repo => {
         const $repo = $(repo);
         const title = $repo
-          .find('h3')
+          .find('.h3')
           .text()
           .trim();
+        const [username, repoName] = title.split('/').map(v => v.trim());
         const relativeUrl = $repo
-          .find('h3')
+          .find('.h3')
           .find('a')
           .attr('href');
         const currentPeriodStarsString =
@@ -86,7 +87,6 @@ async function fetchRepositories({
 
         const builtBy = $repo
           .find('span:contains("Built by")')
-          .parent()
           .find('[data-hovercard-type="user"]')
           .map((i, user) => {
             const altString = $(user)
@@ -117,33 +117,40 @@ async function fetchRepositories({
           : /* istanbul ignore next */ null;
 
         return omitNil({
-          author: title.split(' / ')[0],
-          name: title.split(' / ')[1],
+          author: username,
+          name: repoName,
+          avatar: `${GITHUB_URL}/${username}.png`,
           url: `${GITHUB_URL}${relativeUrl}`,
           description:
             $repo
-              .find('.py-1 p')
+              .find('p.my-1')
               .text()
               .trim() || /* istanbul ignore next */ '',
           language: lang,
           languageColor: langColor,
           stars: parseInt(
             $repo
-              .find(`[href="${relativeUrl}/stargazers"]`)
+              .find(".mr-3 svg[aria-label='star']")
+              .first()
+              .parent()
               .text()
-              .replace(',', '') || /* istanbul ignore next */ 0,
+              .trim()
+              .replace(',', '') || /* istanbul ignore next */ '0',
             10
           ),
           forks: parseInt(
             $repo
-              .find(`[href="${relativeUrl}/network"]`)
+              .find("svg[aria-label='repo-forked']")
+              .first()
+              .parent()
               .text()
-              .replace(',', '') || /* istanbul ignore next */ 0,
+              .trim()
+              .replace(',', '') || /* istanbul ignore next */ '0',
             10
           ),
           currentPeriodStars: parseInt(
             currentPeriodStarsString.split(' ')[0].replace(',', '') ||
-              /* istanbul ignore next */ 0,
+              /* istanbul ignore next */ '0',
             10
           ),
           builtBy,
@@ -157,42 +164,44 @@ async function fetchDevelopers({ language = '', since = 'daily' } = {}) {
     `${GITHUB_URL}/trending/developers/${language}?since=${since}`
   );
   const $ = cheerio.load(await data.text());
-  return $('.explore-content li')
+  return $('.Box article.Box-row')
     .get()
     .map(dev => {
       const $dev = $(dev);
-      const relativeUrl = $dev.find('.f3 a').attr('href');
-      const name = getMatchString(
-        $dev
-          .find('.f3 a span')
-          .text()
-          .trim(),
-        /^\((.+)\)$/i
-      );
-      $dev.find('.f3 a span').remove();
-      const username = $dev
-        .find('.f3 a')
+      const relativeUrl = $dev.find('.h3 a').attr('href');
+      const name = $dev
+        .find('.h3 a')
         .text()
         .trim();
 
-      const $repo = $dev.find('.repo-snipit');
+      const username = relativeUrl.slice(1);
+
+      const type = $dev
+        .find('img')
+        .parent()
+        .attr('data-hovercard-type');
+
+      const $repo = $dev.find('.mt-2 > article');
+
+      $repo.find('svg').remove();
 
       return omitNil({
         username,
         name,
+        type,
         url: `${GITHUB_URL}${relativeUrl}`,
         avatar: removeDefaultAvatarSize($dev.find('img').attr('src')),
         repo: {
           name: $repo
-            .find('.repo-snipit-name span.repo')
+            .find('a')
             .text()
             .trim(),
           description:
             $repo
-              .find('.repo-snipit-description')
+              .find('.f6.mt-1')
               .text()
               .trim() || /* istanbul ignore next */ '',
-          url: `${GITHUB_URL}${$repo.attr('href')}`,
+          url: `${GITHUB_URL}${$repo.find('a').attr('href')}`,
         },
       });
     });

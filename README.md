@@ -75,7 +75,7 @@ cd Gitter
 有疑问或建议可提`issue`，我会尽快处理。
 
 微信讨论群：
-由于人数已满，有需要的可以扫码添加微信：
+由于人数已满，有需要的可以扫码添加微信(请注明：GitHub)：
 
 
 ![Gitter](https://raw.githubusercontent.com/huangjianke/Gitter/master/images/WeChat.png)
@@ -84,3 +84,10 @@ cd Gitter
 ### LICENSE
 
 [Apache License 2.0](./LICENSE)
+
+
+### 其他小程序
+
+|层叠拼图Plus - 烧脑益智小游戏|诗词墨客 - 最全中华古诗词小程序|
+| :---: | :---: |
+|![层叠拼图](https://raw.githubusercontent.com/huangjianke/Gitter/master/images/stack.png)|![诗词墨客](https://raw.githubusercontent.com/huangjianke/weapp-poem/master/images/code.png)|
